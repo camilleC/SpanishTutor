@@ -40,7 +40,7 @@ pip install -e .
 ollama run llama3.2
 ```
 
-2. Run the Spanish Tutor:
+2. Run the Spanish Tutor from the directory containing setup.py:
 ```bash
 spanish-tutor
 ```
