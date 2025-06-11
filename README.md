@@ -8,16 +8,18 @@ An AI-powered Spanish language tutor that adapts to your proficiency level using
 - Adaptive difficulty levels (A1-C2)
 - Real-time feedback and corrections
 - English translations for better understanding
-- Beautiful Gradio-based user interface
+- Gradio-based user interface
 
 ## Installation
+
+### Option 1: Standard Python (Recommended)
 
 ```bash
 # Clone the repository
 git clone https://github.com/camilleC/SpanishTutor.git
 cd SpanishTutor
 
-# Create and activate a virtual environment (recommended)
+# Create and activate a virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
@@ -87,3 +89,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Ollama](https://ollama.ai/) for providing the Llama model
 - [Gradio](https://gradio.app/) for the beautiful UI framework
 - [OpenAI](https://openai.com/) for the API client implementation
+
+###
+This project was inspired by a course I took on large language models. 
+While the structure was based on one of my lessons, I significantly adapted the code, 
+model backend, and functionality to create a Spanish language tutor.
+
+Original code: [Course Name or Link, if allowed]
