@@ -1,71 +1,89 @@
-# Spanish Conversation Tutor
+# Spanish Tutor
 
-An interactive AI-powered Spanish language tutor that adapts to your proficiency level and provides real-time conversation practice.
+An AI-powered Spanish language tutor that adapts to your proficiency level using the Llama language model.
 
 ## Features
 
-- **Real-time Feedback**: Corrects grammar mistakes and explains corrections in English
-- **Bilingual Support**: Provides English translations alongside Spanish responses
-- **Interactive Interface**: Clean, user-friendly chat interface built with Gradio
-- **Local AI Processing**: Powered by Llama 3.2 running locally via Ollama
-
-## Prerequisites
-
-- Python 3.8+
-- Ollama installed and running locally
-- Llama 3.2 model pulled in Ollama
+- Interactive conversation-based learning
+- Adaptive difficulty levels (A1-C2)
+- Real-time feedback and corrections
+- English translations for better understanding
+- Beautiful Gradio-based user interface
 
 ## Installation
 
-1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/spanish-tutor.git
-cd spanish-tutor
+# Clone the repository
+git clone https://github.com/camilleC/SpanishTutor.git
+cd SpanishTutor
+
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install the package
+pip install -e .
 ```
 
-2. Install required packages:
-```bash
-pip install -r requirements.txt
-```
+## Prerequisites
 
-3. Start Ollama with Llama 3.2:
+- Python 3.8 or higher
+- Ollama with Llama model installed locally
+- Internet connection for API calls
+
+## Usage
+
+1. Start the Ollama server with the Llama model:
 ```bash
 ollama run llama3.2
 ```
 
-## Usage
-
-1. Run the tutor:
+2. Run the Spanish Tutor:
 ```bash
-python spanish_tutor.py
+spanish-tutor
 ```
 
-2. Open your browser to the provided local URL (typically http://127.0.0.1:7860)
-
-3. Enter your Spanish proficiency level when prompted (A1, A2, B1, B2, C1, or C2)
-
-4. Start conversing! You can:
-   - Ask questions in English or Spanish
-   - Practice grammar and vocabulary
-   - Get immediate feedback on your Spanish
-
-## Technical Details
-
-- Built with Python and Gradio for the user interface
-- Uses Llama 3.2 for natural language processing
-- Implements streaming responses for real-time interaction
-- Maintains conversation history for context-aware responses
+3. Open your browser and navigate to the provided local URL (typically http://localhost:7860)
 
 ## Project Structure
 
 ```
-Spanish Tutor/
-├── README.md
-├── requirements.txt
-├── spanish_tutor.py
-└── .gitignore
+spanish_tutor/
+├── src/
+│   └── main.py          # Main application code
+├── tests/
+│   └── test_main.py     # Test suite
+├── setup.py             # Package configuration
+├── requirements.txt     # Project dependencies
+└── README.md           # Project documentation
 ```
 
-## Contributing
+## Development
 
-Feel free to submit issues and enhancement requests!
+### Running Tests
+
+```bash
+# Run all tests
+python -m pytest spanish_tutor/tests/
+
+# Run with coverage report
+python -m pytest spanish_tutor/tests/ --cov=spanish_tutor
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [Ollama](https://ollama.ai/) for providing the Llama model
+- [Gradio](https://gradio.app/) for the beautiful UI framework
+- [OpenAI](https://openai.com/) for the API client implementation
