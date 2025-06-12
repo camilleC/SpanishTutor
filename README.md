@@ -12,7 +12,7 @@ The code:
 
 This approach mimics OpenAI’s API locally, allowing one to develop and test against powerful language models without external API charges.
 
-As the purpose of this demo is to show how to wire up a free LLM that can later be replaced by a frontier model comprehensive tests and error handeling are missing.
+As the purpose of this demo is to show how to wire up a free LLM that can later be replaced by a frontier model. Comprehensive tests and error handeling are missing.
 
 
 ## Features
