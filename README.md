@@ -2,6 +2,20 @@
 
 An AI-powered Spanish language tutor that adapts to your proficiency level using the Llama language model.
 
+The OpenAI client is pointed at a local Ollama server. This is a practical workaround to avoid paying for API usage on OpenAI’s cloud services.
+By running the llama model locally via Ollama and configuring the OpenAI client to send requests to this local endpoint, the code:
+
+Uses the same OpenAI SDK interface and code patterns without changes.
+
+Avoids incurring costs associated with calling OpenAI’s hosted API.
+
+Maintains flexibility to switch models or endpoints by simply changing the base_url or model name.
+
+So essentially, this approach mimics OpenAI’s API locally, allowing one to develop and test against powerful language models without external API charges.
+
+As the purpose of this demo is to show how to wire up a free LLM that can later be replaced by a frontier model comprehensive tests and error handeling are missing.
+
+
 ## Features
 
 - Interactive conversation-based learning
@@ -10,10 +24,7 @@ An AI-powered Spanish language tutor that adapts to your proficiency level using
 - English translations for better understanding
 - Gradio-based user interface
 
-## NOTES:
-- The purpose of this demo is to show how to wire up a free LLM that can be replaced by a frontier model.
-   Thus, comprehensive tests and error handeling are missing.
-- A free llm is being used rather then a frontier model. Because of this the model is less accurate then it could be. 
+
 
 ## Installation
 
