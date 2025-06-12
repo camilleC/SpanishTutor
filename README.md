@@ -107,7 +107,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ###
 This project was inspired by a course I took on large language models. 
-While the structure was based on one of my lessons, I significantly adapted the code, 
-model backend, and functionality to create a Spanish language tutor.
+I significantly adapted the code, model backend, and functionality to create a Spanish language tutor.
 
-Original code: [Course Name or Link, if allowed]
+[https://www.udemy.com/course/llm-engineering-master-ai-and-large-language-models]
