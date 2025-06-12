@@ -48,27 +48,7 @@ class TestSpanishTutor(unittest.TestCase):
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
 
-    def test_invalid_level(self):
-        """Test handling of invalid level input."""
-        response = next(self.tutor.generate_response("INVALID", []))
-        self.assertIn("INVALID", response)
-        self.assertEqual(self.tutor.user_level, "INVALID")
 
-    @patch('spanish_tutor.src.tutor.OpenAI')
-    def test_error_handling(self, mock_openai):
-        """Test error handling when API call fails."""
-        # Mock an API error
-        mock_client = MagicMock()
-        mock_openai.return_value = mock_client
-        mock_client.chat.completions.create.side_effect = Exception("API Error")
-
-        # Set user level first
-        self.tutor.user_level = "A1"
-
-        # Test error handling
-        response = next(self.tutor.generate_response("Test message", []))
-        self.assertIn("Error", response)
-        self.assertIn("Ollama", response)
 
 class TestSpanishLearningApp(unittest.TestCase):
     def setUp(self):

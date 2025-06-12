@@ -10,13 +10,21 @@ import gradio as gr
 from typing import List, Tuple
 from .tutor import SpanishTutor
 
+LEVELS = [
+    "A1 - Beginner",
+    "A2 - Elementary",
+    "B1 - Intermediate",
+    "B2 - Upper Intermediate",
+    "C1 - Advanced"
+]
+
 class SpanishLearningApp:
     def __init__(self):
         """Initialize the Spanish learning application."""
         self.tutor = SpanishTutor()
-        self.setup_interface()
+        self.setup_gradio()
 
-    def setup_interface(self) -> None:
+    def setup_gradio(self) -> None:
         """Set up the Gradio interface with custom styling."""
         self.interface = gr.ChatInterface(
             fn=self.handle_chat,
@@ -33,13 +41,7 @@ class SpanishLearningApp:
                 radius_size="md",
                 text_size="md",
             ),
-            examples=[
-                "A1 - Beginner          ",
-                "A2 - Elementary        ",
-                "B1 - Intermediate      ",
-                "B2 - Upper Intermediate",
-                "C1 - Advanced          "
-            ]
+            examples=LEVELS
         )
 
     def handle_chat(self, message: str, history: List[Tuple[str, str]]) -> str:

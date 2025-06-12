@@ -10,6 +10,11 @@ An AI-powered Spanish language tutor that adapts to your proficiency level using
 - English translations for better understanding
 - Gradio-based user interface
 
+## NOTES:
+- The purpose of this demo is to show how to wire up a free LLM that can be replaced by a frontier model.
+   Thus, comprehensive tests and error handeling are missing.
+- A free llm is being used rather then a frontier model. Because of this the model is less accurate then it could be. 
+
 ## Installation
 
 ### Option 1: Standard Python (Recommended)

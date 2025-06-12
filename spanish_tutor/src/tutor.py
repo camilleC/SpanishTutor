@@ -1,9 +1,24 @@
 """
 Tutor module for Spanish language learning.
+
+The reason this setup uses the OpenAI client pointed at a local Ollama server is a practical workaround to avoid paying for API usage on OpenAI’s cloud services.
+By running the llama model locally via Ollama and configuring the OpenAI client to send requests to this local endpoint, the code:
+
+Uses the same OpenAI SDK interface and code patterns without changes.
+
+Avoids incurring costs associated with calling OpenAI’s hosted API.
+
+Maintains flexibility to switch models or endpoints by simply changing the base_url or model name.
+
+So essentially, this approach mimics OpenAI’s API locally, allowing one to develop and test against powerful language models without external API charges.
 """
 
 from openai import OpenAI
 from typing import Generator, List, Tuple, Optional
+import logging
+
+logging.basicConfig(level=logging.DEBUG)  # or INFO in production
+logger = logging.getLogger(__name__)
 
 class SpanishTutor:
     def __init__(self, model_name: str = "llama3.2"):
@@ -62,15 +77,29 @@ class SpanishTutor:
 
         try:
             stream = self.llama.chat.completions.create(
-                model=self.model_name,
-                messages=messages,
-                stream=True
+            model=self.model_name,
+            messages=messages,
+            stream=True
             )
 
             response = ""
             for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    response += chunk.choices[0].delta.content
-                    yield response
+                try:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        response += content
+                        yield response
+                except (AttributeError, IndexError) as e:
+                    logger.error("Malformed chunk received: %s", chunk)
+                    yield "Error: Received an unexpected response format from the model."
+                    return
+
+        except AttributeError as e:
+            logger.exception("llama client not properly initialized.")
+            yield "Error: Internal setup issue. Please check if the model client is correctly initialized."
+        except ConnectionError as e:
+            logger.exception("Connection to model backend failed.")
+            yield f"Error: Couldn't connect to Ollama. Is the `{self.model_name}` model running?"
         except Exception as e:
-            yield f"Error: {str(e)}. Please ensure Ollama is running with the {self.model_name} model." 
+            logger.exception("Unexpected error during response generation.")
+            yield f"Error: {str(e)}. Please ensure Ollama is running with the `{self.model_name}` model."
