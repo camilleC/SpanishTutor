@@ -3,16 +3,14 @@
 An AI-powered Spanish language tutor that adapts to your proficiency level using the Llama language model.
 
 The OpenAI client is pointed at a local Ollama server. This is a practical workaround to avoid paying for API usage on OpenAI’s cloud services.
-By running the llama model locally via Ollama and configuring the OpenAI client to send requests to this local endpoint.
+It works by running the llama model locally via Ollama and configuring the OpenAI client to send requests to this local endpoint.
 
 The code:
-- Uses the same OpenAI SDK interface and code patterns without changes.
+- Uses the same OpenAI SDK interface and code patterns.
 - Avoids incurring costs associated with calling OpenAI’s hosted API.
 - Maintains flexibility to switch models or endpoints by simply changing the base_url or model name.
 
-This approach mimics OpenAI’s API locally, allowing one to develop and test against powerful language models without external API charges.
-
-As the purpose of this demo is to show how to wire up a free LLM that can later be replaced by a frontier model. Comprehensive tests and error handeling are missing.
+As the purpose of this demo is to show how to wire up a free LLM that can later be replaced by a frontier model, comprehensive tests and error handeling are missing.
 
 
 ## Features
@@ -22,7 +20,6 @@ As the purpose of this demo is to show how to wire up a free LLM that can later 
 - Real-time feedback and corrections
 - English translations for better understanding
 - Gradio-based user interface
-
 
 
 ## Installation
@@ -95,9 +92,6 @@ python -m pytest spanish_tutor/tests/ --cov=spanish_tutor
 4. Push to the branch
 5. Create a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
