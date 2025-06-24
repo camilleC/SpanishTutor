@@ -12,7 +12,7 @@ Built with:
 
 ---
 
-## ✨ Features
+## Features
 
 - Interactive, real-time conversation practice
 - Adaptive difficulty (A1–C2 proficiency levels)
@@ -24,7 +24,7 @@ Built with:
 
 ---
 
-## 🧠 Motivation
+## Motivation
 
 This project demonstrates how to deploy a **cost-effective, self-hosted AI tutor** by:
 - Using the OpenAI client with a **local Ollama server** to avoid cloud API costs
@@ -137,7 +137,7 @@ Open your browser:
 
 ---
 
-## 🧠 Contributing
+## Contributing
 
 1. Fork this repo
 2. Create a branch (`feature/my-feature`)
@@ -146,7 +146,7 @@ Open your browser:
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Ollama](https://ollama.ai) for local LLMs
 - [Gradio](https://gradio.app) for the user interface
