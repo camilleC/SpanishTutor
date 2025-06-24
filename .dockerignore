@@ -1,0 +1,39 @@
+# Don't include your virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.egg
+*.egg-info
+*.env
+*.venv/
+venv/
+env/
+ENV/
+
+# VSCode and macOS specific
+.vscode/
+.DS_Store
+
+# Jupyter or IPython
+.ipynb_checkpoints/
+
+# Git & CI/CD
+.git
+.gitignore
+.gitattributes
+.github/
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Don't include test results or logs
+tests/
+*.log
+coverage/
+htmlcov/
+.cache/
+.tox/

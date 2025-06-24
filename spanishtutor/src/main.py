@@ -59,10 +59,20 @@ class SpanishLearningApp:
             show_api=False,
         )
 
+    def get_interface(self):
+        """Return the Gradio interface for external use (e.g., API)."""
+        return self.interface
+
 def main():
     """Launch the Spanish learning application."""
     app = SpanishLearningApp()
     app.launch()
 
+def get_interface():
+    """Return the Gradio interface for use in other modules (e.g., FastAPI)."""
+    app = SpanishLearningApp()
+    return app.get_interface()
+
 if __name__ == "__main__":
-    main() 
+    main()
+    

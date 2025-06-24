@@ -32,7 +32,7 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "spanish-tutor=spanish_tutor.src.main:main",
+            "spanish-tutor=spanishtutor.src.main:main",
         ],
     },
 ) 
