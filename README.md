@@ -1,106 +1,156 @@
-# Spanish Tutor
 
-An AI-powered Spanish language tutor that adapts to your proficiency level using the Llama language model.
+# 🇪🇸 Spanish Tutor
 
-The OpenAI client is pointed at a local Ollama server. This is a practical workaround to avoid paying for API usage on OpenAI’s cloud services.
-It works by running the llama model locally via Ollama and configuring the OpenAI client to send requests to this local endpoint.
+An AI-powered Spanish language tutor that adapts to your proficiency level using open-source LLMs, local inference, and modern backend tooling.
 
-The code:
-- Uses the same OpenAI SDK interface and code patterns.
-- Avoids incurring costs associated with calling OpenAI’s hosted API.
-- Maintains flexibility to switch models or endpoints by simply changing the base_url or model name.
+Built with:
+- **Gradio**: Chat-style UI for learner interaction
+- **FastAPI**: Production-grade web server to host the Gradio app
+- **Ollama**: Local LLM inference with LLaMA models
+- **Prometheus + Grafana**: Metrics and observability
+- **Docker + Docker Compose**: Easy deployment
 
-As the purpose of this demo is to show how to wire up a free LLM that can later be replaced by a frontier model, comprehensive tests and error handeling are missing.
-
+---
 
 ## Features
 
-- Interactive conversation-based learning
-- Adaptive difficulty levels (A1-C2)
-- Real-time feedback and corrections
-- English translations for better understanding
-- Gradio-based user interface
+- Interactive, real-time conversation practice
+- Adaptive difficulty (A1–C2 proficiency levels)
+- English translation for better understanding
+- Error correction and feedback
+- Tracks active users and chat turns
+- Prometheus metrics exposed at `/metrics`
+- Grafana dashboard for monitoring usage
 
+---
+
+## Motivation
+
+This project demonstrates how to deploy a **cost-effective, self-hosted AI tutor** by:
+- Using the OpenAI client with a **local Ollama server** to avoid cloud API costs
+- Keeping the system **modular** so it can later be upgraded to use frontier models like GPT-4
+- Supporting **observability and containerization** for real-world deployments
+
+---
+
+## 📁 Project Structure
+
+```
+SpanishTutor/
+├── spanishtutor/
+│   ├── src/
+│   │   ├── main.py         # Core logic
+│   │   └── api/app.py      # FastAPI app mounting Gradio
+│   └── metrics.py          # Prometheus counters
+├── tests/                  # Test suite
+├── Dockerfile              # Container build file
+├── docker-compose.yml      # Multi-service dev stack
+├── requirements.txt
+├── setup.py
+└── README.md
+```
+
+---
 
 ## Installation
 
-### Option 1: Standard Python (Recommended)
+### Option 1: Local Python (Recommended for Dev)
 
 ```bash
 # Clone the repository
 git clone https://github.com/camilleC/SpanishTutor.git
 cd SpanishTutor
 
-# Create and activate a virtual environment
+# Set up environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
 
-# Install the package
+# Install dependencies
 pip install -e .
 ```
 
-## Prerequisites
+### Option 2: Docker + Docker Compose
 
-- Python 3.8 or higher
-- Ollama with Llama model installed locally
-- Internet connection for API calls
+Ensure Docker is installed, then run:
 
-## Usage
-
-1. Start the Ollama server with the Llama model:
 ```bash
-ollama run llama3.2
+docker-compose up --build
 ```
 
-2. Run the Spanish Tutor from the directory containing setup.py:
-```bash
-spanish-tutor
+- FastAPI+Gradio app will run on [http://localhost:8000](http://localhost:8000)
+- Prometheus at [http://localhost:9090](http://localhost:9090)
+- Grafana at [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 📈 Metrics
+
+The app will exposes Prometheus metrics like:
+
+- `app_chat_turns_total` (TODO)
+- `app_active_users_total` (TODO)
+
+Visit `/metrics` on FastAPI to see raw output:
+```
+http://localhost:8000/metrics
 ```
 
-3. Open your browser and navigate to the provided local URL (typically http://localhost:7860)
+In Grafana:
+1. Open [http://localhost:3000](http://localhost:3000)
+2. Add Prometheus as a data source
+3. Create dashboards for chat usage and activity
 
-## Project Structure
+---
 
-```
-spanish_tutor/
-├── src/
-│   └── main.py          # Main application code
-├── tests/
-│   └── test_main.py     # Test suite
-├── setup.py             # Package configuration
-├── requirements.txt     # Project dependencies
-└── README.md           # Project documentation
-```
-
-## Development
-
-### Running Tests
+##  Running Tests
 
 ```bash
 # Run all tests
-python -m pytest spanish_tutor/tests/
+pytest
 
-# Run with coverage report
-python -m pytest spanish_tutor/tests/ --cov=spanish_tutor
+# With coverage
+pytest --cov=spanishtutor
 ```
 
-### Contributing
+---
 
-1. Fork the repository
-2. Create a feature branch
+##  Usage
+
+Start Ollama (if not already running):
+
+```bash
+ollama run llama3
+```
+
+Then run the tutor:
+
+```bash
+spanish-tutor
+# OR if using Docker Compose
+docker-compose up
+```
+
+Open your browser:
+- Gradio UI: [http://localhost:8000/chat](http://localhost:8000/chat)
+- Prometheus: [http://localhost:9090](http://localhost:9090)
+- Grafana: [http://localhost:3000](http://localhost:3000)
+
+---
+
+## Contributing
+
+1. Fork this repo
+2. Create a branch (`feature/my-feature`)
 3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+4. Push and open a PR
 
+---
 
 ## Acknowledgments
 
-- [Ollama](https://ollama.ai/) for providing the Llama model
-- [Gradio](https://gradio.app/) for the beautiful UI framework
-- [OpenAI](https://openai.com/) for the API client implementation
+- [Ollama](https://ollama.ai) for local LLMs
+- [Gradio](https://gradio.app) for the user interface
+- [FastAPI](https://fastapi.tiangolo.com) for API backend
+- [Prometheus](https://prometheus.io) and [Grafana](https://grafana.com) for observability
+- Inspired by [Udemy’s LLM Engineering course](https://www.udemy.com/course/llm-engineering-master-ai-and-large-language-models)
 
-###
-This project was inspired by a course I took on large language models. 
-I significantly adapted the code, model backend, and functionality to create a Spanish language tutor.
-
-[https://www.udemy.com/course/llm-engineering-master-ai-and-large-language-models]
