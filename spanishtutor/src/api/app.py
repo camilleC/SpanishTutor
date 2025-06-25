@@ -8,7 +8,7 @@ app = FastAPI()
 
 # Create and mount the Gradio interface
 interface = get_interface()
-app.mount("/demo", interface.app)
+app.mount("/chat", interface.app)
 
 # Health check route
 @app.get("/health")

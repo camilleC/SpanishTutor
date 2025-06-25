@@ -131,7 +131,7 @@ docker-compose up
 ```
 
 Open your browser:
-- Gradio UI: [http://localhost:8000/demo](http://localhost:8000/demo)
+- Gradio UI: [http://localhost:8000/chat](http://localhost:8000/chat)
 - Prometheus: [http://localhost:9090](http://localhost:9090)
 - Grafana: [http://localhost:3000](http://localhost:3000)
 
