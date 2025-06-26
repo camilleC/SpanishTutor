@@ -9,6 +9,7 @@ An interactive AI-powered Spanish language tutor with cultural context and perso
 import gradio as gr
 from typing import List, Tuple
 from .tutor import SpanishTutor
+from .metrics import chat_turns_total
 
 LEVELS = [
     "A1 - Beginner",
@@ -46,6 +47,7 @@ class SpanishLearningApp:
 
     def handle_chat(self, message: str, history: List[Tuple[str, str]]) -> str:
         """Handle chat messages and generate responses."""
+        chat_turns_total.inc()
         for response in self.tutor.generate_response(message, history):
             yield response
 
@@ -75,4 +77,3 @@ def get_interface():
 
 if __name__ == "__main__":
     main()
-    

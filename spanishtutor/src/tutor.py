@@ -25,7 +25,7 @@ class SpanishTutor:
         """Initialize the Spanish tutor with the specified model."""
         self.model_name = model_name
         self.llama = OpenAI(
-            base_url='http://localhost:11434/v1',
+            base_url='http://host.docker.internal:11434/v1', #TODO MOVE TO ENV VAR?
             api_key='ollama'
         )
         self.user_level: Optional[str] = None

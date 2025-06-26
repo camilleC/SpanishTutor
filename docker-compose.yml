@@ -1,16 +1,22 @@
 version: "3.9"
 
 services:
-  spanish-tutor-app:
+  spanish-tutor-api:
     build: .
-    container_name: spanish-tutor-app
+    container_name: spanish-tutor-api
     ports:
       - "8000:8000"
-      - "7860:7860"
-    expose:
-      - "8000"
     depends_on:
       - prometheus
+
+  spanish-tutor-ui:
+    build: .
+    container_name: spanish-tutor-ui
+    command: python -m spanishtutor.src.main
+    ports:
+      - "7860:7860"
+    depends_on:
+      - spanish-tutor-api
 
   prometheus:
     image: prom/prometheus
