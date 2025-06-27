@@ -1,13 +1,14 @@
+
 # 🇪🇸 Spanish Tutor
 
 An AI-powered Spanish language tutor that adapts to your proficiency level using open-source LLMs, local inference, and modern backend tooling.
 
 Built with:
 - **Gradio**: Chat-style UI for learner interaction
-- **FastAPI**: Production-grade web server to host the Gradio app
+- **FastAPI**: Production-grade API backend for metrics and future endpoints
 - **Ollama**: Local LLM inference with LLaMA models
 - **Prometheus + Grafana**: Metrics and observability
-- **Docker + Docker Compose**: Easy deployment
+- **Docker + Docker Compose**: Easy deployment with a clean microservice architecture
 
 ---
 
@@ -18,8 +19,9 @@ Built with:
 - English translation for better understanding
 - Error correction and feedback
 - Tracks active users and chat turns
-- Prometheus metrics exposed at `/metrics`
+- Prometheus metrics exposed at `/metrics` (via FastAPI service)
 - Grafana dashboard for monitoring usage
+- Microservice-ready architecture (UI, API, Metrics separated)
 
 ---
 
@@ -27,25 +29,8 @@ Built with:
 
 This project demonstrates how to deploy a **cost-effective, self-hosted AI tutor** by:
 - Using the OpenAI client with a **local Ollama server** to avoid cloud API costs
-- Keeping the system **modular** so it can later be upgraded to use frontier models like GPT-4
+- Keeping the system **modular and maintainable** for scalability
 - Supporting **observability and containerization** for real-world deployments
-
----
-
-## Project Structure
-
-SpanishTutor/
-├── spanishtutor/
-│   ├── src/
-│   │   ├── main.py         # Core logic
-│   │   └── api/app.py      # FastAPI app mounting Gradio
-│   └── metrics.py          # Prometheus counters
-├── tests/                  # Test suite
-├── Dockerfile              # Container build file
-├── docker-compose.yml      # Multi-service dev stack
-├── requirements.txt
-├── setup.py
-└── README.md
 
 ---
 
@@ -69,25 +54,28 @@ Ensure Docker is installed, then run:
 docker-compose up --build
 ```
 
-- FastAPI+Gradio app will run on http://localhost:8000
-- Prometheus at http://localhost:9090
-- Grafana at http://localhost:3000
+- Gradio UI at: http://localhost:7860  
+- FastAPI (metrics endpoint): http://localhost:8000  
+- Prometheus at: http://localhost:9090  
+- Grafana at: http://localhost:3000  
 
 ---
 
 ## 📈 Metrics
 
-Exposed Prometheus metrics:
+Prometheus scrapes the FastAPI `/metrics` endpoint.
 
-- `app_chat_turns_total`
-- `app_active_users_total`
+Exposed metrics include:
 
-View at: http://localhost:8000/metrics
+- `chat_turns_total`: Counts the number of chat turns
+- (More coming soon, e.g., `active_users_total`)
 
-In Grafana:
-1. Open http://localhost:3000
-2. Add Prometheus as a data source
-3. Create dashboards
+To view:
+- Visit http://localhost:8000/metrics
+- In Grafana:
+  1. Go to http://localhost:3000
+  2. Add Prometheus as a data source
+  3. Build custom dashboards
 
 ---
 
@@ -95,7 +83,7 @@ In Grafana:
 
 ```bash
 pytest
-pytest --cov=spanishtutor
+pytest --cov=src
 ```
 
 ---
@@ -108,21 +96,19 @@ Start Ollama:
 ollama run llama3
 ```
 
-Run the tutor:
+Run the system via Docker:
 
 ```bash
-spanish-tutor
-# OR with Docker
-docker-compose up
+docker-compose up --build
 ```
 
-Open:
-- Gradio: http://localhost:7860 # don't use http in production
-- Prometheus: http://localhost:9090 # don't use http in production
-- Grafana: http://localhost:3000 # don't use http in production
+Then open:
+- Gradio: http://localhost:7860  
+- Prometheus: http://localhost:9090  
+- Grafana: http://localhost:3000  
 
-⚠️ If Ollama is outside Docker, set:
-TODO: Eventually put the model inside of docker
+⚠️ If Ollama runs outside Docker, make sure your model client points here:
+
 ```python
 base_url = "http://host.docker.internal:11434/v1"
 ```
