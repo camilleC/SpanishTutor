@@ -4,8 +4,13 @@ services:
   spanish-tutor-api:
     build: .
     container_name: spanish-tutor-api
+    command: uvicorn spanishtutor.src.api.app:app --host 0.0.0.0 --port 8000
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - PORT=${API_PORT}
     depends_on:
       - prometheus
 
@@ -16,7 +21,7 @@ services:
     ports:
       - "7860:7860"
     environment:
-      - API_URL=http://spanish-tutor-api:8000/chat # for running with docker compose (for docker internal dns name)
+      - API_URL=${API_URL}
     depends_on:
       - spanish-tutor-api
 

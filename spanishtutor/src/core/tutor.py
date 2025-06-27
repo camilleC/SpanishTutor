@@ -1,21 +1,22 @@
 """
 Tutor module for Spanish language learning.
 
-The reason this setup uses the OpenAI client pointed at a local Ollama server is a practical workaround to avoid paying for API usage on OpenAI’s cloud services.
+The reason this setup uses the OpenAI client pointed at a local Ollama server is a practical workaround to avoid paying for API usage on OpenAI's cloud services.
 By running the llama model locally via Ollama and configuring the OpenAI client to send requests to this local endpoint, the code:
 
 Uses the same OpenAI SDK interface and code patterns without changes.
 
-Avoids incurring costs associated with calling OpenAI’s hosted API.
+Avoids incurring costs associated with calling OpenAI's hosted API.
 
 Maintains flexibility to switch models or endpoints by simply changing the base_url or model name.
 
-So essentially, this approach mimics OpenAI’s API locally, allowing one to develop and test against powerful language models without external API charges.
+So essentially, this approach mimics OpenAI's API locally, allowing one to develop and test against powerful language models without external API charges.
 """
 
 from openai import OpenAI
 from typing import Generator, List, Tuple, Optional
 import logging
+import os
 
 logging.basicConfig(level=logging.DEBUG)  # or INFO in production
 logger = logging.getLogger(__name__)
@@ -25,8 +26,8 @@ class SpanishTutor:
         """Initialize the Spanish tutor with the specified model."""
         self.model_name = model_name
         self.llama = OpenAI(
-            base_url='http://host.docker.internal:11434/v1', #TODO MOVE TO ENV VAR?
-            api_key='ollama'
+            base_url=os.getenv('LLM_BASE_URL', 'http://host.docker.internal:11434/v1'),
+            api_key=os.getenv('LLM_API_KEY', 'ollama')
         )
         self.user_level: Optional[str] = None
         self._setup_system_prompt()

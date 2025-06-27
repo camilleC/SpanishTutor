@@ -3,7 +3,7 @@ import gradio as gr
 from typing import List, Tuple
 import os
 
-API_URL = os.getenv("API_URL", "http://localhost:8000/chat") # default value if I'm not running it via docker compose TODO check if it is correct
+API_URL = os.getenv("API_URL", "http://localhost:8000/chat") # default value if I'm not running it via docker compose
 
 LEVELS = [
     "A1 - Beginner",
