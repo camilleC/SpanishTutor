@@ -28,27 +28,6 @@ This project demonstrates how to deploy a **cost-effective, self-hosted LLM mode
 - Keeping the system **modular and extensible** for future integration with other models or services
 - Supporting **observability and containerization** for real-world, production-like deployments
 
----
-
-## Project Structure
-
-```
-SpanishTutor/
-├── spanishtutor/
-│   ├── src/
-│   │   ├── main.py         # Gradio UI launcher
-│   │   └── api/app.py      # FastAPI app exposing chat and metrics
-│   └── metrics.py          # Prometheus counters
-├── tests/                  # Test suite
-├── Dockerfile              # Container build file (used by both services)
-├── docker-compose.yml      # Multi-service dev stack
-├── .env                    # Environment variables
-├── requirements.txt
-├── setup.py
-└── README.md
-```
-
----
 
 ##  Installation
 
@@ -97,7 +76,7 @@ To view:
 ## Running Tests
 
 ```bash
-pytest
+pytest spanishtutor/tests/
 pytest --cov=spanishtutor
 ```
 
