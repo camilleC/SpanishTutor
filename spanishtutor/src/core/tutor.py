@@ -13,12 +13,15 @@ Maintains flexibility to switch models or endpoints by simply changing the base_
 So essentially, this approach mimics OpenAI's API locally, allowing one to develop and test against powerful language models without external API charges.
 """
 
-from openai import OpenAI
+from openai import OpenAI, APIError, APIConnectionError, RateLimitError, BadRequestError
 from typing import Generator, List, Tuple, Optional
 import logging
 import os
 
-logging.basicConfig(level=logging.DEBUG)  # or INFO in production
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+current_level = getattr(logging, log_level, logging.INFO)
+
+logging.basicConfig(level=current_level)  # or INFO in production
 logger = logging.getLogger(__name__)
 
 class SpanishTutor:
@@ -64,6 +67,8 @@ class SpanishTutor:
             ])
         return formatted_history
 
+    # Even on errors, we `yield` a message — because this is a generator (if yeild is used the whole Fx turns into a generator).
+    # Generators can't use `return value`; `yield` sends the error to the caller.
     def generate_response(self, message: str, history: List[Tuple[str, str]]) -> Generator[str, None, None]:
         """Generate a response to the user's message."""
         if not self.user_level:
@@ -85,22 +90,43 @@ class SpanishTutor:
 
             response = ""
             for chunk in stream:
+                # Catch malformed data one chunk at a time.
                 try:
                     content = chunk.choices[0].delta.content
                     if content:
                         response += content
+                        # yield to emit partial responses as the LLM generates them 
                         yield response
                 except (AttributeError, IndexError) as e:
                     logger.error("Malformed chunk received: %s", chunk)
                     yield "Error: Received an unexpected response format from the model."
                     return
 
+        # Exeptions not related to chunks
+        except APIConnectionError as e: # subclass of APIError
+            logger.exception("Connection error when calling LLM.")
+            yield f"Error: Failed to connect to LLM at `{self.model_name}`. Is it running?"
+
+        except RateLimitError as e: # subclass of APIError
+            logger.warning("Rate limited by local LLM API.")
+            yield "Error: Too many requests. Please wait a moment and try again."
+
+        except BadRequestError as e: # subclass of APIError
+            logger.error(f"Bad request: {e}")
+            yield "Error: The request was malformed. Please check your input and try again."
+
+        except APIError as e:
+            logger.exception("OpenAI-style API error")
+            yield f"Error: Model error — {str(e)}"
+
         except AttributeError as e:
-            logger.exception("llama client not properly initialized.")
+            logger.exception("Client not properly initialized.")
             yield "Error: Internal setup issue. Please check if the model client is correctly initialized."
+
         except ConnectionError as e:
             logger.exception("Connection to model backend failed.")
-            yield f"Error: Couldn't connect to Ollama. Is the `{self.model_name}` model running?"
+            yield f"Error: Couldn't connect to LLM. Is the `{self.model_name}` model running?"
+
         except Exception as e:
             logger.exception("Unexpected error during response generation.")
             yield f"Error: {str(e)}. Please ensure Ollama is running with the `{self.model_name}` model."
