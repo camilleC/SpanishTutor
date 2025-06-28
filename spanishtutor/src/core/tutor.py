@@ -18,7 +18,10 @@ from typing import Generator, List, Tuple, Optional
 import logging
 import os
 
-logging.basicConfig(level=logging.DEBUG)  # or INFO in production
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+current_level = getattr(logging, log_level, logging.INFO)
+
+logging.basicConfig(level=current_level)  # or INFO in production
 logger = logging.getLogger(__name__)
 
 class SpanishTutor:

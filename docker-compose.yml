@@ -9,6 +9,7 @@ services:
     ports:
       - "${API_PORT:-8000}:8000"
     environment:
+      - LOG_LEVEL=${LOG_LEVEL}
       - LLM_BASE_URL=${LLM_BASE_URL}
       - LLM_API_KEY=${LLM_API_KEY}
       - PORT=${API_PORT}

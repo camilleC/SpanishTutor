@@ -1,3 +1,4 @@
+import logging
 import requests
 import gradio as gr
 from typing import List, Tuple
@@ -12,6 +13,12 @@ LEVELS = [
     "B2 - Upper Intermediate",
     "C1 - Advanced"
 ]
+
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+current_level = getattr(logging, log_level, logging.INFO)
+
+logging.basicConfig(level=current_level)  # or INFO in production
+logger = logging.getLogger(__name__)
 
 class SpanishLearningApp:
     def __init__(self):
@@ -35,6 +42,7 @@ class SpanishLearningApp:
             ),
             examples=LEVELS
         )
+        logger.info("Gradio UI setup is complete")
 
     def handle_chat(self, message: str, history: List[Tuple[str, str]]) -> str:
         try:
@@ -45,6 +53,7 @@ class SpanishLearningApp:
             response.raise_for_status()
             return response.json()["reply"]
         except Exception as e:
+            logger.exception(f"Error: {str(e)}")
             return f"Error: {str(e)}"
 
     def launch(self) -> None:
