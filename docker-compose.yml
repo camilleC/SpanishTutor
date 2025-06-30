@@ -40,10 +40,13 @@ services:
     container_name: grafana
     ports:
       - "${GRAFANA_HOST_PORT}:3000"
-    volumes:
-      - grafana-storage:/var/lib/grafana
-    depends_on:
-      - prometheus
+    volumes:           # persists user data
+      - ./grafana/dashboards:/etc/grafana/dashboards # auto-load dashboards
+      - ./grafana/provisioning:/etc/grafana/provisioning # provisioning config
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
 
 volumes:
   grafana-storage:

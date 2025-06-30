@@ -1,9 +1,10 @@
+from prometheus_client import Histogram
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Tuple
 
 from spanishtutor.src.core.tutor import SpanishTutor
-from spanishtutor.src.core.metrics import chat_turns_total
+from spanishtutor.src.core.metrics import chat_turns_total, chat_response_latency
 from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
@@ -22,7 +23,10 @@ def health_check():
 @app.post("/chat")
 def chat(request: ChatRequest):
     chat_turns_total.inc()
-    response = ""
-    for chunk in tutor.generate_response(request.message, request.history):
-        response = chunk
+
+    with chat_response_latency.time(): # used as a context manager times everything inside the with block. 
+        response = ""
+        for chunk in tutor.generate_response(request.message, request.history):
+            response = chunk
+
     return {"reply": response}
