@@ -17,6 +17,10 @@ from openai import OpenAI, APIError, APIConnectionError, RateLimitError, BadRequ
 from typing import Generator, List, Tuple, Optional
 import logging
 import os
+from spanishtutor.src.core.metrics import (
+    chat_chunks_total,
+    llm_error_count
+)
 
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 current_level = getattr(logging, log_level, logging.INFO)
@@ -96,37 +100,46 @@ class SpanishTutor:
                     if content:
                         response += content
                         # yield to emit partial responses as the LLM generates them 
+                        chat_chunks_total.inc()
                         yield response
                 except (AttributeError, IndexError) as e:
                     logger.error("Malformed chunk received: %s", chunk)
+                    llm_error_count.labels(error_type="malformed_chunk").inc()
                     yield "Error: Received an unexpected response format from the model."
                     return
 
         # Exeptions not related to chunks
         except APIConnectionError as e: # subclass of APIError
             logger.exception("Connection error when calling LLM.")
+            llm_error_count.labels(error_type="APIConnectionError").inc()
             yield f"Error: Failed to connect to LLM at `{self.model_name}`. Is it running?"
 
         except RateLimitError as e: # subclass of APIError
             logger.warning("Rate limited by local LLM API.")
+            llm_error_count.labels(error_type="RateLimitError").inc()
             yield "Error: Too many requests. Please wait a moment and try again."
 
         except BadRequestError as e: # subclass of APIError
             logger.error(f"Bad request: {e}")
+            llm_error_count.labels(error_type="BadRequestError").inc()
             yield "Error: The request was malformed. Please check your input and try again."
 
         except APIError as e:
             logger.exception("OpenAI-style API error")
+            llm_error_count.labels(error_type="APIError").inc()
             yield f"Error: Model error — {str(e)}"
 
         except AttributeError as e:
             logger.exception("Client not properly initialized.")
+            llm_error_count.labels(error_type="AttributeError").inc()
             yield "Error: Internal setup issue. Please check if the model client is correctly initialized."
 
         except ConnectionError as e:
             logger.exception("Connection to model backend failed.")
+            llm_error_count.labels(error_type="ConnectionError").inc()
             yield f"Error: Couldn't connect to LLM. Is the `{self.model_name}` model running?"
 
         except Exception as e:
             logger.exception("Unexpected error during response generation.")
+            llm_error_count.labels(error_type="Exception").inc()
             yield f"Error: {str(e)}. Please ensure Ollama is running with the `{self.model_name}` model."
