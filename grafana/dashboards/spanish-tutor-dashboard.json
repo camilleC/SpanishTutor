@@ -1,24 +1,80 @@
 {
-    "id": null,
-    "uid": "spanish-tutor",
-    "title": "Working Dashboard Test 6",
-    "schemaVersion": 36,
-    "version": 1,
-    "refresh": "10s",
-    "panels": [
-      {
-        "type": "stat",
-        "title": "Chat Turns per Minute",
-        "id": 1,
-        "datasource": "Prometheus",
-        "targets": [
-          {
-            "expr": "rate(chat_turns_total[1m])",
-            "format": "time_series"
-          }
-        ],
-        "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
-        "fieldConfig": { "defaults": { "unit": "none" } }
-      }
-    ]
-  }
+  "id": null,
+  "uid": "spanish-tutor",
+  "title": "Working Dashboard Test 6",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Chat Turns per Minute",
+      "id": 1,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(chat_turns_total[1m])",
+          "format": "time_series"
+        }
+      ],
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "none" } }
+    },
+    {
+      "type": "stat",
+      "title": "Total Chat Requests",
+      "id": 2,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "increase(chat_requests_total[1m])",
+          "format": "time_series"
+        }
+      ],
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "none" } }
+    },
+    {
+      "type": "stat",
+      "title": "Chat Response Latency (p95)",
+      "id": 3,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(chat_response_latency_seconds_bucket[1m])) by (le))",
+          "format": "time_series"
+        }
+      ],
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "seconds" } }
+    },
+    {
+      "type": "stat",
+      "title": "LLM Errors by Type",
+      "id": 4,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum by (error_type) (increase(llm_error_count[1m]))",
+          "format": "time_series"
+        }
+      ],
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 6 },
+      "fieldConfig": { "defaults": { "unit": "none" } }
+    },
+    {
+      "type": "stat",
+      "title": "LLM Streaming Chunks",
+      "id": 5,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "increase(chat_chunks_total[1m])",
+          "format": "time_series"
+        }
+      ],
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 6 },
+      "fieldConfig": { "defaults": { "unit": "none" } }
+    }
+  ]
+}
