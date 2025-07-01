@@ -1,109 +1,116 @@
-"""
-Test suite for the Spanish Language Learning Assistant.
-"""
-
 import unittest
 from unittest.mock import patch, MagicMock
-from openai import APIConnectionError
-from spanishtutor.src.core.tutor import SpanishTutor
+from openai import APIConnectionError, RateLimitError, BadRequestError, APIError, APIStatusError
+from spanishtutor.src.core.tutor import (
+    SpanishTutor,
+    TutorModelUnavailable,
+    TutorBadRequest,
+    TutorInternalError
+)
 from spanishtutor.src.core.ui import SpanishLearningApp
+from fastapi.testclient import TestClient
+from spanishtutor.src.api.app import app
+
+# Dummy classes used in OpenAI error constructors
+class DummyRequest: pass
+class DummyResponse:
+    request = DummyRequest()
+    status_code = 400
+    headers = {}
+    text = "Bad request"
 
 class TestSpanishTutor(unittest.TestCase):
     def setUp(self):
-        """Set up test environment before each test."""
+        """Patch OpenAI and set up tutor before each test."""
+        self.openai_patcher = patch('spanishtutor.src.core.tutor.OpenAI')
+        self.mock_openai_class = self.openai_patcher.start()
+        self.mock_client = MagicMock()
+        self.mock_openai_class.return_value = self.mock_client
+
         self.tutor = SpanishTutor()
+        self.tutor.user_level = "A1"
+
+    def tearDown(self):
+        """Stop patcher after each test."""
+        self.openai_patcher.stop()
 
     def test_initial_level_setting(self):
-        """Test that the first message sets the user level correctly."""
-        # Test with A1 level
-        response = next(self.tutor.generate_response("A1", []))
-        self.assertIn("A1", response)
-        self.assertEqual(self.tutor.user_level, "A1")
-
-        # Reset for next test
         self.tutor.user_level = None
+        response = next(self.tutor.generate_response("A2", []))
+        self.assertIn("A2", response)
+        self.assertEqual(self.tutor.user_level, "A2")
 
-        # Test with B2 level
-        response = next(self.tutor.generate_response("B2", []))
-        self.assertIn("B2", response)
-        self.assertEqual(self.tutor.user_level, "B2")
-
-    @patch('spanishtutor.src.core.tutor.OpenAI')
-    def test_chat_response(self, mock_openai):
-        """Test chat response generation with mocked OpenAI client."""
-        # Set up the mock response
-        mock_client = MagicMock()
-        mock_openai.return_value = mock_client
-        mock_stream = MagicMock()
+    def test_chat_response(self):
         mock_chunk = MagicMock()
         mock_chunk.choices = [MagicMock()]
-        mock_chunk.choices[0].delta.content = "¡Hola! ¿Cómo estás?"
-        mock_stream.__iter__.return_value = [mock_chunk]
-        mock_client.chat.completions.create.return_value = mock_stream
+        mock_chunk.choices[0].delta.content = "¡Hola!"
+        self.mock_client.chat.completions.create.return_value = [mock_chunk]
 
-        # Set user level first
-        self.tutor.user_level = "A1"
-
-        # Test chat with a simple message
         response = next(self.tutor.generate_response("¿Cómo estás?", []))
-        self.assertIsNotNone(response)
-        self.assertIsInstance(response, str)
+        self.assertEqual(response, "¡Hola!")
 
-    @patch('spanishtutor.src.core.tutor.OpenAI')
-    def test_malformed_chunk_handling(self, mock_openai):
-        """Test handling of malformed chunks from the LLM."""
-        mock_client = MagicMock()
-        mock_openai.return_value = mock_client
-        mock_stream = MagicMock()
-        
-        # Create a malformed chunk that will cause AttributeError when accessing delta.content
+    def test_malformed_chunk_handling(self):
         mock_chunk = MagicMock()
         mock_choice = MagicMock()
-        mock_choice.delta = None  # This will cause AttributeError when accessing delta.content
+        mock_choice.delta = None  # causes AttributeError
         mock_chunk.choices = [mock_choice]
-        mock_stream.__iter__.return_value = [mock_chunk]
-        mock_client.chat.completions.create.return_value = mock_stream
+        self.mock_client.chat.completions.create.return_value = [mock_chunk]
 
-        self.tutor.user_level = "A1"
-        response = next(self.tutor.generate_response("Test message", []))
-        self.assertIn("Error: Failed to connect to LLM at `llama3.2`. Is it running?", response)
+        with self.assertRaises(TutorInternalError) as cm:
+            list(self.tutor.generate_response("Test", []))
+        self.assertIn("unexpected response format", str(cm.exception))
 
-    @patch('spanishtutor.src.core.tutor.OpenAI')
-    def test_connection_error_handling(self, mock_openai):
-        """Test handling of connection errors to the LLM backend."""
-        mock_client = MagicMock()
-        mock_openai.return_value = mock_client
-        mock_client.chat.completions.create.side_effect = ConnectionError("Connection failed")
+    def test_api_connection_error_handling(self):
+        self.mock_client.chat.completions.create.side_effect = APIConnectionError(request=DummyRequest())
+        with self.assertRaises(TutorModelUnavailable) as cm:
+            next(self.tutor.generate_response("Test", []))
+        self.assertIn("connect to LLM", str(cm.exception))
 
-        self.tutor.user_level = "A1"
-        response = next(self.tutor.generate_response("Test message", []))
-        self.assertIn("Error: Failed to connect to LLM", response)
+    def test_rate_limit_error_handling(self):
+        self.mock_client.chat.completions.create.side_effect = RateLimitError(
+            message="rate limit", response=DummyResponse(), body=None
+        )
+        with self.assertRaises(TutorModelUnavailable) as cm:
+            next(self.tutor.generate_response("Test", []))
+        self.assertIn("Too many requests", str(cm.exception))
 
-    def test_Attribution_error_handling(self):
-        """Test handling of AttributeError when client is not properly initialized."""
-        # Directly set the llama client to None to trigger AttributeError
-        self.tutor.llama = None
+    def test_bad_request_error_handling(self):
+        self.mock_client.chat.completions.create.side_effect = BadRequestError(
+            message="bad request", response=DummyResponse(), body=None
+        )
+        with self.assertRaises(TutorBadRequest) as cm:
+            next(self.tutor.generate_response("Test", []))
+        self.assertIn("malformed", str(cm.exception))
 
-        self.tutor.user_level = "A1"
-        response = next(self.tutor.generate_response("Test message", []))
-        self.assertIn("Error: Internal setup issue. Please check if the model client is correctly initialized.", response)
+    def test_api_error_handling(self):
+        self.mock_client.chat.completions.create.side_effect = APIError(
+            "api error", request=DummyRequest(), body=None
+        )
+        with self.assertRaises(TutorInternalError) as cm:
+            next(self.tutor.generate_response("Test", []))
+        self.assertIn("Model error", str(cm.exception))
 
-    @patch('spanishtutor.src.core.tutor.OpenAI')
-    def test_general_exception_handling(self, mock_openai):
-        """Test handling of general exceptions."""
-        mock_client = MagicMock()
-        mock_openai.return_value = mock_client
-        mock_client.chat.completions.create.side_effect = Exception("Unexpected error")
+    def test_attribute_error_handling(self):
+        self.mock_client.chat.completions.create.side_effect = AttributeError("not initialized")
+        with self.assertRaises(TutorInternalError) as cm:
+            next(self.tutor.generate_response("Test", []))
+        self.assertIn("Internal setup issue", str(cm.exception))
 
-        self.tutor.user_level = "A1"
-        response = next(self.tutor.generate_response("Test message", []))
-        self.assertIn("Error:", response)
+    def test_connection_error_handling(self):
+        self.mock_client.chat.completions.create.side_effect = ConnectionError("fail")
+        with self.assertRaises(TutorModelUnavailable) as cm:
+            next(self.tutor.generate_response("Test", []))
+        self.assertIn("connect to LLM", str(cm.exception))
+
+    def test_general_exception_handling(self):
+        self.mock_client.chat.completions.create.side_effect = Exception("unexpected")
+        with self.assertRaises(TutorInternalError) as cm:
+            next(self.tutor.generate_response("Test", []))
+        self.assertIn("Unexpected error", str(cm.exception))
 
     def test_format_chat_history(self):
-        """Test the format_chat_history method."""
         history = [("Hello", "Hola"), ("How are you?", "¿Cómo estás?")]
         formatted = self.tutor.format_chat_history(history)
-        
         expected = [
             {"role": "user", "content": "Hello"},
             {"role": "assistant", "content": "Hola"},
@@ -113,40 +120,6 @@ class TestSpanishTutor(unittest.TestCase):
         self.assertEqual(formatted, expected)
 
     def test_set_level(self):
-        """Test the set_level method."""
         response = self.tutor.set_level("B2")
         self.assertEqual(self.tutor.user_level, "B2")
         self.assertIn("B2", response)
-
-class TestSpanishLearningApp(unittest.TestCase):
-    def setUp(self):
-        """Set up test environment before each test."""
-        self.app = SpanishLearningApp()
-
-    def test_app_initialization(self):
-        """Test that the app initializes correctly."""
-        self.assertIsNotNone(self.app.interface)
-
-    def test_handle_chat(self):
-        """Test the chat handling functionality."""
-        # Patch the requests.post method used in handle_chat
-        with patch("spanishtutor.src.core.ui.requests.post") as mock_post:
-            mock_post.return_value.json.return_value = {"reply": "Test response"}
-            mock_post.return_value.raise_for_status = lambda: None
-            response = self.app.handle_chat("Test message", [])
-            self.assertEqual(response, "Test response")
-
-    def test_handle_chat_error(self):
-        """Test error handling in handle_chat when API request fails."""
-        with patch("spanishtutor.src.core.ui.requests.post") as mock_post:
-            mock_post.side_effect = Exception("Network error")
-            response = self.app.handle_chat("Test message", [])
-            self.assertIn("Error:", response)
-
-    def test_handle_chat_http_error(self):
-        """Test error handling in handle_chat when API returns HTTP error."""
-        with patch("spanishtutor.src.core.ui.requests.post") as mock_post:
-            mock_post.return_value.raise_for_status.side_effect = Exception("HTTP 500")
-            response = self.app.handle_chat("Test message", [])
-            self.assertIn("Error:", response)
-

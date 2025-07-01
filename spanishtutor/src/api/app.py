@@ -1,5 +1,5 @@
 from prometheus_client import Histogram
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from typing import List, Tuple
 
@@ -10,6 +10,12 @@ from spanishtutor.src.core.metrics import (
     chat_response_latency,
     llm_error_count
 )
+from spanishtutor.src.exceptions import (
+    TutorBadRequest,
+    TutorModelUnavailable,
+    TutorInternalError
+)
+
 from prometheus_fastapi_instrumentator import Instrumentator
 import time
 
@@ -35,9 +41,19 @@ def chat(request: ChatRequest):
         for chunk in tutor.generate_response(request.message, request.history):
             response = chunk
         chat_turns_total.inc()
+    except TutorBadRequest as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    except TutorModelUnavailable as e:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+
+    except TutorInternalError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     except Exception as e:
-        llm_error_count.labels(error_type=type(e).__name__).inc() # e is a class, using __name__ gets the string
-        raise
+        llm_error_count.labels(error_type=type(e).__name__).inc()
+        raise HTTPException(status_code=500, detail="Unexpected server error.")
+    
     latency = time.time() - start_time
     chat_response_latency.observe(latency)
     return {"reply": response}
