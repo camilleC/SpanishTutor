@@ -11,6 +11,10 @@ Avoids incurring costs associated with calling OpenAI's hosted API.
 Maintains flexibility to switch models or endpoints by simply changing the base_url or model name.
 
 So essentially, this approach mimics OpenAI's API locally, allowing one to develop and test against powerful language models without external API charges.
+TODO: remove this comment later
+Comments on Exception: In this design, the core logic (generate_response) catches low-level exceptions from the LLM client (like APIConnectionError, RateLimitError) and 
+translates them into custom app-specific exceptions (TutorBadRequest, TutorModelUnavailable, etc.). This keeps external dependencies isolated from the FastAPI route, 
+which only needs to handle your own exception types and return appropriate HTTP status codes. It makes the system more modular, testable, and easier to maintain or swap out model providers later.
 """
 
 from openai import OpenAI, APIError, APIConnectionError, RateLimitError, BadRequestError
@@ -20,6 +24,11 @@ import os
 from spanishtutor.src.core.metrics import (
     chat_chunks_total,
     llm_error_count
+)
+from spanishtutor.src.exceptions import (
+    TutorBadRequest,
+    TutorModelUnavailable,
+    TutorInternalError
 )
 
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -101,45 +110,44 @@ class SpanishTutor:
                         response += content
                         # yield to emit partial responses as the LLM generates them 
                         chat_chunks_total.inc()
+        # Exeptions not related to chunks
                         yield response
                 except (AttributeError, IndexError) as e:
                     logger.error("Malformed chunk received: %s", chunk)
                     llm_error_count.labels(error_type="malformed_chunk").inc()
-                    yield "Error: Received an unexpected response format from the model."
-                    return
-
-        # Exeptions not related to chunks
-        except APIConnectionError as e: # subclass of APIError
+                    raise TutorInternalError("Received an unexpected response format from the model.")
+          
+        except APIConnectionError as e:  # subclass of APIError
             logger.exception("Connection error when calling LLM.")
             llm_error_count.labels(error_type="APIConnectionError").inc()
-            yield f"Error: Failed to connect to LLM at `{self.model_name}`. Is it running?"
+            raise TutorModelUnavailable(f"Failed to connect to LLM at `{self.model_name}`. Is it running?")
 
-        except RateLimitError as e: # subclass of APIError
+        except RateLimitError as e:  # subclass of APIError
             logger.warning("Rate limited by local LLM API.")
             llm_error_count.labels(error_type="RateLimitError").inc()
-            yield "Error: Too many requests. Please wait a moment and try again."
+            raise TutorModelUnavailable("Too many requests. Please wait a moment and try again.")
 
-        except BadRequestError as e: # subclass of APIError
+        except BadRequestError as e:  # subclass of APIError
             logger.error(f"Bad request: {e}")
             llm_error_count.labels(error_type="BadRequestError").inc()
-            yield "Error: The request was malformed. Please check your input and try again."
+            raise TutorBadRequest("The request was malformed. Please check your input and try again.")
 
         except APIError as e:
             logger.exception("OpenAI-style API error")
             llm_error_count.labels(error_type="APIError").inc()
-            yield f"Error: Model error — {str(e)}"
+            raise TutorInternalError(f"Model error — {str(e)}")
 
         except AttributeError as e:
             logger.exception("Client not properly initialized.")
             llm_error_count.labels(error_type="AttributeError").inc()
-            yield "Error: Internal setup issue. Please check if the model client is correctly initialized."
+            raise TutorInternalError("Internal setup issue. Please check if the model client is correctly initialized.")
 
         except ConnectionError as e:
             logger.exception("Connection to model backend failed.")
             llm_error_count.labels(error_type="ConnectionError").inc()
-            yield f"Error: Couldn't connect to LLM. Is the `{self.model_name}` model running?"
+            raise TutorModelUnavailable(f"Couldn't connect to LLM. Is the `{self.model_name}` model running?")
 
         except Exception as e:
             logger.exception("Unexpected error during response generation.")
             llm_error_count.labels(error_type="Exception").inc()
-            yield f"Error: {str(e)}. Please ensure Ollama is running with the `{self.model_name}` model."
+            raise TutorInternalError(f"Unexpected error: {str(e)}. Please ensure Ollama is running with the `{self.model_name}` model.")

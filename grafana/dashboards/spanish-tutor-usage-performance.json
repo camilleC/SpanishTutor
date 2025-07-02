@@ -1,0 +1,121 @@
+{
+  "id": null,
+  "uid": "spanish-tutor-usage-performance",
+  "title": "Spanish Tutor - Usage & Performance",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Chat Turns per Minute",
+      "id": 1,
+      "datasource": "Prometheus",
+      "targets": [{"expr": "rate(chat_turns_total[1m])", "format": "time_series"}],
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0},
+      "fieldConfig": {"defaults": {"unit": "none"}}
+    },
+    {
+      "type": "stat",
+      "title": "Total Chat Requests",
+      "id": 2,
+      "datasource": "Prometheus",
+      "targets": [{"expr": "increase(chat_requests_total[1m])", "format": "time_series"}],
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 0},
+      "fieldConfig": {"defaults": {"unit": "none"}}
+    },
+    {
+      "type": "stat",
+      "title": "Chat Response Latency (p95)",
+      "id": 3,
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(chat_response_latency_seconds_bucket[1m])) by (le))",
+        "format": "time_series"
+      }],
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 0},
+      "fieldConfig": {"defaults": {"unit": "seconds"}}
+    },
+    {
+      "type": "stat",
+      "title": "LLM Streaming Chunks",
+      "id": 4,
+      "datasource": "Prometheus",
+      "targets": [{"expr": "increase(chat_chunks_total[1m])", "format": "time_series"}],
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 6},
+      "fieldConfig": {"defaults": {"unit": "none"}}
+    },
+    {
+      "type": "stat",
+      "title": "LLM Errors by Type",
+      "id": 5,
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum by (error_type) (increase(llm_error_count_total[1m]))",
+        "format": "time_series",
+        "legendFormat": "{{error_type}}"
+      }],
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 6},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "displayNameFrom": "labels"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Requests by Endpoint",
+      "id": 6,
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum by (path) (rate(http_status_codes_total{path!~\"/(metrics)\"}[1m]))",
+        "format": "time_series",
+        "legendFormat": "{{path}}"
+      }],
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 6},
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "options": {"orientation": "vertical", "showValue": "always"}
+    },
+    {
+      "type": "piechart",
+      "title": "Requests by Method",
+      "id": 7,
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum by (method) (rate(http_status_codes_total[1m]))",
+        "format": "time_series",
+        "legendFormat": "{{method}}"
+      }],
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 12},
+      "fieldConfig": {"defaults": {"unit": "none"}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency Quantiles",
+      "id": 8,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(chat_response_latency_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(chat_response_latency_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(chat_response_latency_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p99"
+        }
+      ],
+      "gridPos": {"h": 6, "w": 18, "x": 6, "y": 12},
+      "fieldConfig": {"defaults": {"unit": "seconds"}},
+      "options": {
+        "legend": {"displayMode": "table", "placement": "bottom"},
+        "tooltip": {"mode": "multi"}
+      }
+    }
+  ]
+}
