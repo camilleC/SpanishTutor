@@ -11,7 +11,7 @@ Avoids incurring costs associated with calling OpenAI's hosted API.
 Maintains flexibility to switch models or endpoints by simply changing the base_url or model name.
 
 So essentially, this approach mimics OpenAI's API locally, allowing one to develop and test against powerful language models without external API charges.
-
+TODO: remove this comment later
 Comments on Exception: In this design, the core logic (generate_response) catches low-level exceptions from the LLM client (like APIConnectionError, RateLimitError) and 
 translates them into custom app-specific exceptions (TutorBadRequest, TutorModelUnavailable, etc.). This keeps external dependencies isolated from the FastAPI route, 
 which only needs to handle your own exception types and return appropriate HTTP status codes. It makes the system more modular, testable, and easier to maintain or swap out model providers later.
@@ -110,14 +110,13 @@ class SpanishTutor:
                         response += content
                         # yield to emit partial responses as the LLM generates them 
                         chat_chunks_total.inc()
+        # Exeptions not related to chunks
                         yield response
                 except (AttributeError, IndexError) as e:
                     logger.error("Malformed chunk received: %s", chunk)
                     llm_error_count.labels(error_type="malformed_chunk").inc()
                     raise TutorInternalError("Received an unexpected response format from the model.")
-                    return # is this needed?
-
-        # Exeptions not related to chunks
+          
         except APIConnectionError as e:  # subclass of APIError
             logger.exception("Connection error when calling LLM.")
             llm_error_count.labels(error_type="APIConnectionError").inc()

@@ -1,4 +1,4 @@
-from prometheus_client import Histogram
+from prometheus_client import Histogram, Counter
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from typing import List, Tuple
@@ -23,6 +23,13 @@ app = FastAPI()
 instrumentator = Instrumentator().instrument(app).expose(app)
 
 tutor = SpanishTutor()
+
+# Add Prometheus Counter for HTTP status codes
+http_status_codes_total = Counter(
+    "http_status_codes_total",
+    "HTTP response status codes",
+    ["status_code", "method", "path"]
+)
 
 class ChatRequest(BaseModel):
     message: str
@@ -57,3 +64,20 @@ def chat(request: ChatRequest):
     latency = time.time() - start_time
     chat_response_latency.observe(latency)
     return {"reply": response}
+
+@app.middleware("http")
+async def prometheus_status_middleware(request, call_next):
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+    except Exception:
+        status_code = 500
+        raise
+    finally:
+        http_status_codes_total.labels(
+            status_code=str(status_code),
+            method=request.method,
+            path=request.url.path
+        ).inc()
+        
+    return response

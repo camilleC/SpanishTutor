@@ -1,0 +1,74 @@
+{
+    "id": null,
+    "uid": "spanish-tutor-reliability",
+    "title": "Spanish Tutor - Reliability",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "type": "timeseries",
+        "title": "HTTP Status Codes Over Time",
+        "id": 1,
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum by (status_code) (rate(http_status_codes_total[1m]))",
+            "format": "time_series",
+            "legendFormat": "{{status_code}}"
+          }
+        ],
+        "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "displayNameFrom": "labels",
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "lines",
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "fillOpacity": 0,
+              "showPoints": "auto"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single"
+          }
+        }
+      },
+      {
+        "type": "gauge",
+        "title": "Error Rate %",
+        "id": 9,
+        "datasource": "Prometheus",
+        "targets": [{
+          "expr": "(sum(rate(http_status_codes_total{status_code=~\"4..|5..\"}[1m])) / sum(rate(http_status_codes_total[1m]))) * 100",
+          "format": "time_series"
+        }],
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 18},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "orange", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }

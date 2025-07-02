@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from openai import APIConnectionError, RateLimitError, BadRequestError, APIError, APIStatusError
+from openai import APIConnectionError, RateLimitError, BadRequestError, APIError
 from spanishtutor.src.core.tutor import (
     SpanishTutor,
     TutorModelUnavailable,

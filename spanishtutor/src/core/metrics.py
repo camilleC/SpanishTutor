@@ -35,5 +35,3 @@ llm_error_count = Counter(
     "Total number of LLM errors", 
     ["error_type"]
 )
-
-
