@@ -2,7 +2,6 @@
 
 An AI-powered chatbot with adaptive conversation, robust error handling, and full-stack observability.
 
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 
 ---
@@ -139,24 +138,23 @@ pytest --cov=spanishtutor
 ##  Configuration
 
 - Environment variables are managed in `docker-compose.yml`
-- Use a .env file but do not check it into github. To start, use these values:
-
-API_URL=http://spanish-tutor-api:8000/chat # for running with docker compose (for docker internal dns name)
-LOG_LEVEL=info
-API_PORT=8000
-LOG_LEVEL=DEBUG
-
-MODEL_NAME=llama3.2
-LLM_BASE_URL=http://host.docker.internal:11434/v1
-LLM_API_KEY=ollama
-PROMETHEUS_SCRAPE_INTERVAL=5s
-GRAFANA_HOST_PORT=3000
-PROMETHEUS_HOST_PORT=9090
-
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=admin
 - All Python dependencies are listed in `requirements.txt`
 - Ollama model is assumed to be `llama3` (configurable)
+- Use a .env file but do not check it into github. To start, use these values:
+
+- API_URL=http://spanish-tutor-api:8000/chat
+- LOG_LEVEL=info
+- API_PORT=8000
+- LOG_LEVEL=DEBUG
+- MODEL_NAME=llama3.2
+- LLM_BASE_URL=http://host.docker.internal:11434/v1
+- LLM_API_KEY=ollama
+- PROMETHEUS_SCRAPE_INTERVAL=5s
+- GRAFANA_HOST_PORT=3000
+- PROMETHEUS_HOST_PORT=9090
+- GRAFANA_ADMIN_USER=admin
+- GRAFANA_ADMIN_PASSWORD=admin
+
 
 ---
 
