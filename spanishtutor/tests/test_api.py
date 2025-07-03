@@ -59,6 +59,33 @@ class TestAPI(unittest.TestCase):
             assert response.status_code == 400
             assert "Bad request" in response.json()["detail"]
 
+    def test_chat_retry_logic(self):
+        # Simulate TutorModelUnavailable for first 2 calls, then success
+        payload = {"message": "A1", "history": []}
+        call_sequence = [
+            TutorModelUnavailable("Model unavailable 1"),
+            TutorModelUnavailable("Model unavailable 2"),
+            iter(["Recovered reply"])
+        ]
+        def side_effect(*args, **kwargs):
+            result = call_sequence.pop(0)
+            if isinstance(result, Exception):
+                raise result
+            return result
+        with patch("spanishtutor.src.core.tutor.SpanishTutor.generate_response", side_effect=side_effect) as mock_gen:
+            response = self.client.post("/chat", json=payload)
+            assert response.status_code == 200
+            assert response.json()["reply"] == "Recovered reply"
+            assert mock_gen.call_count == 3
+
+        # Simulate TutorModelUnavailable for all 3 attempts
+        payload = {"message": "A1", "history": []}
+        with patch("spanishtutor.src.core.tutor.SpanishTutor.generate_response", side_effect=TutorModelUnavailable("Always unavailable")) as mock_gen:
+            response = self.client.post("/chat", json=payload)
+            assert response.status_code == 503
+            assert "Always unavailable" in response.json()["detail"]
+            assert mock_gen.call_count == 3
+
 class TestSpanishLearningApp(unittest.TestCase):
     def setUp(self):
         """Set up test environment before each test."""

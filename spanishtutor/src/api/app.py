@@ -19,6 +19,7 @@ from spanishtutor.src.exceptions import (
 from prometheus_fastapi_instrumentator import Instrumentator
 import time
 
+
 app = FastAPI()
 instrumentator = Instrumentator().instrument(app).expose(app)
 
@@ -43,24 +44,28 @@ def health_check():
 def chat(request: ChatRequest):
     chat_requests_total.inc()
     start_time = time.time() # This will work async now.
+    attempts = 3
+    response = ""
+    for attempt in range(attempts):
+        try:
+            for chunk in tutor.generate_response(request.message, request.history):
+                response = chunk
+            chat_turns_total.inc()
+            break
+        except TutorModelUnavailable as e:
+            if attempt == attempts - 1:
+                raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
 
-    try:
-        for chunk in tutor.generate_response(request.message, request.history):
-            response = chunk
-        chat_turns_total.inc()
-    except TutorBadRequest as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        except TutorBadRequest as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    except TutorModelUnavailable as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+        except TutorInternalError as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
-    except TutorInternalError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    except Exception as e:
-        llm_error_count.labels(error_type=type(e).__name__).inc()
-        raise HTTPException(status_code=500, detail="Unexpected server error.")
-    
+        except Exception as e:
+            llm_error_count.labels(error_type=type(e).__name__).inc()
+            raise HTTPException(status_code=500, detail="Unexpected server error.")
+        
     latency = time.time() - start_time
     chat_response_latency.observe(latency)
     return {"reply": response}
